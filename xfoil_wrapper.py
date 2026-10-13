@@ -54,8 +54,8 @@ def run_xfoilv(dat_path, chord_ft, Vmax, alpha=0):
         cmds.append("")
         cmds.append(f"ALFA {alpha}")
         cmds.append("PACC")
-        cmds.append("")
-        cmds.append("QUIT")
+        #cmds.append("")
+        #cmds.append("QUIT")
 
         stdin = "\n".join(cmds) + "\n"
         timeout=60
@@ -71,21 +71,21 @@ def run_xfoilv(dat_path, chord_ft, Vmax, alpha=0):
         if not os.path.isfile(polar_file):
             raise RuntimeError("XFOIL produced no polar file")
 
-        print(proc.stdout[-4000:])
+        #print(proc.stdout[-4000:])
 
-        cl, cd = read_polar(polar_file, alpha)
+        cl, cd, cdp = read_polar(polar_file, alpha)
         # symmetric section at alpha = 0 should give CL ~ 0; XFOIL can converge
         # to a lopsided separated solution on sharp-cornered plates
         if alpha == 0 and abs(cl) > 0.01:
             print(f"WARNING: CL = {cl} at alpha = 0, solution is asymmetric; treat CD with suspicion")
-        return cd;
+        return float(cd), float(cd-cdp), float(cdp);
 
 def read_polar(polar_file, alpha):
-    # XFOIL only writes converged points to the polar, so an empty table = no convergence
     data = np.loadtxt(polar_file, skiprows=12, ndmin=2)
     if data.shape[0] == 0:
         raise RuntimeError(f"XFOIL did not converge at alpha = {alpha}")
-    return data[0, 1], data[0, 2]
+    cl, cd, cdp = data[0, 1], data[0, 2], data[0, 3]
+    return cl, cd, cdp          # friction: cd - cdp
 
 def get_reynold(chord_ft, Vmax, nu=1.57e-4):
     return (chord_ft*Vmax)/nu;
@@ -131,17 +131,23 @@ def run_xfoilinv(dat_path, alpha=0):
 
         #print(proc.stdout[-4000:])
 
-        cl, cd = read_polar(polar_file, alpha)
+        cl, cd,cdp = read_polar(polar_file, alpha)
         return float(cl), float(cd);
 
 
-chord = 5.0 # in
+chord = 4.0 # in
 chord_ft = chord/12.0
-Vmax = 312 # ft
-file = "prev_profile_5inchchord.dat"
+Vmax = 309 # ft
+fileA = "double_wedge_4inchchord.dat"
+fileB = "teardrop_4inchchord.dat"
 
-dat_path = os.path.join(os.path.dirname(__file__), "saved_profile_coords", file)
+dat_pathA = os.path.join(os.path.dirname(__file__), "saved_profile_coords", fileA)
+dat_pathB = os.path.join(os.path.dirname(__file__), "saved_profile_coords", fileB)
+print(dat_pathA)
 
-#print(run_xfoilv(dat_path,chord_ft,Vmax))
-print(run_xfoilinv(dat_path))
+print(f"Cd (Chamfered) : {run_xfoilv(dat_pathA,chord_ft,Vmax)}")
+print(f"Cd (Teardrop) : {run_xfoilv(dat_pathB,chord_ft,Vmax)}")
+
+print(run_xfoilinv(dat_pathA, alpha=2)[0])
+print(run_xfoilinv(dat_pathB, alpha=2)[0])
     

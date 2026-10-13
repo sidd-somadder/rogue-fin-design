@@ -44,22 +44,30 @@ temp_rankine = 460+temp
 R = 1716 # ft*lbf/slugR
 a = np.sqrt(gamma*R*temp_rankine)
 
-vmax = 312 # ft; from openrocket
 
-# Calculated from old design
+vmax = 305 # ft; from openrocket
+
+# Calculated from new design
+thickness = 0.25
+h = 4.25
+cr = 5
+tip = 3
+area = h*(cr + tip)/2
+
 ar_old = 16/24
 tc_old = 0.25/9
 taper_old = 3/9
 
 # Working numbers, change as redesigns come
-ar_new = 16/20
-tc_new = 0.25/7
-taper_new = 3/7 
+ar_new = (h**2)/area
+tc_new = thickness/cr
+taper_new = tip/cr 
 
 
 rel_fl = relative_flutter(ar_new=ar_new, ar_old=ar_old, tc_new=tc_new, tc_old=tc_old, taper_new=taper_new, taper_old=taper_old)
 abs_fl_new = absolute_flutter(tc=tc_new, G=birch_shear_mod, P=P, AR=ar_new, taper=taper_new,a=a)
 flutter_factor = flutter_rocketspeed_ratio(Vflutter=abs_fl_new, Vmax_rocket=vmax)
+
 print(f"Relative flutter change factor : {rel_fl:.3f}")
 print(f"New Absolute flutter estimate : {abs_fl_new:.3f} ft/s")
 print(f"Flutter-to-Rocket Speed factor: {flutter_factor:.3f}")
