@@ -141,8 +141,8 @@ Vmax = 309 # ft
 fileA = "double_wedge_4inchchord.dat"
 fileB = "teardrop_4inchchord.dat"
 
-dat_pathA = os.path.join(os.path.dirname(__file__), "saved_profile_coords", fileA)
-dat_pathB = os.path.join(os.path.dirname(__file__), "saved_profile_coords", fileB)
+dat_pathA = os.path.join(os.path.dirname(os.path.dirname(__file__)), "saved_profile_coords", fileA)
+dat_pathB = os.path.join(os.path.dirname(os.path.dirname(__file__)), "saved_profile_coords", fileB)
 print(dat_pathA)
 
 print(f"Cd (Chamfered) : {run_xfoilv(dat_pathA,chord_ft,Vmax)}")
