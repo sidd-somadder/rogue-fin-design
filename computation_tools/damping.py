@@ -65,7 +65,7 @@ rocket_len = 112
 nc_len = 25.6
 
 # CHANGE THIS .CSV FILE NAME
-file = 'iteration2_subscale_nowind.csv'
+file = 'iteration2_subscale_30mph.csv'
 
 # Extract .csv data from specified file in flight_data/ folder
 script_dir = Path(__file__).resolve().parent
@@ -75,7 +75,7 @@ data = np.loadtxt(csv_path, delimiter=',', skiprows=1)
 # Gravitational acceleration factor
 G_C = 32.174
 
-# Import time, velocity, mass, longitudinal inertia, center of gravity, mach number
+# Import time (s), velocity (ft/s), mass (oz), longitudinal inertia (lbft^2), center of gravity (ft), density (lb/ft^3), mach number
 time = data[:,0]
 velocity = data[:,1]
 mass = data[:,2] / 16 / G_C
