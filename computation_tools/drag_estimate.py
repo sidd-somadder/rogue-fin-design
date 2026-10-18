@@ -23,17 +23,18 @@ def estimate_skin_friction_drag(root, tip, height, V, t, steps=100, rho=0.002377
 
     return np.sum(Df) * q
 
-# input dimensions
+# CHANGE THESE INPUTS
 root = 5.5
 tip = 3
 height = 4.25
+Vmax = 308
+
 # Previous year fin planform dimensions
 root_OLD = 9.0
 tip_OLD = 3.0
 height_OLD = 4.0
 
 thickness = 0.25
-Vmax = 308
 
 # convert units in inches to feet
 thickness = thickness/12
@@ -52,5 +53,5 @@ percent_change = 100 * ((drag-drag_prev)/drag_prev)
 print(f"Estimated new skin friction : {drag:.3g} lbf")
 print(f"Estimated previous skin friction : {drag_prev:.3g} lbf")
 print(f"Estimated % change : {percent_change:.3g}")
-print(2* get_friction_coeff(4/12, 309))
+#print(2* get_friction_coeff(4/12, 309))
 
