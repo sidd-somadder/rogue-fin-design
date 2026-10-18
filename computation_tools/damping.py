@@ -1,6 +1,21 @@
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
+import re
+
+LAUNCHROD_RE = re.compile(r"#\s*Event\s+LAUNCH\s*ROD\s+occurred", re.IGNORECASE)
+
+def getRailExitIndex(csv_path):
+    # Index (into the data-only array, i.e. comments/blank lines skipped) of the first data row after the LAUNCHROD event comment
+    data_row = 0
+    with open(csv_path, encoding="utf-8") as f:
+        for line in f:
+            stripped = line.strip()
+            if LAUNCHROD_RE.match(stripped):
+                return data_row
+            if stripped and not stripped.startswith("#"):
+                data_row += 1
+    raise ValueError(f"No LAUNCHROD event found in {csv_path}")
 
 # Primarily using Mandell's Topics in Advanced Model Rocketry (1973) for reference
 
@@ -44,8 +59,8 @@ def getNormalFCoeff(Cr, Ct, S, rt, N=4, beta = 1): # Assume cropped delta
     return C_N_alpha_F, C_N_alpha_NC
 
 def getCenterPressure(NC_len, RK_len, root, tip):
-    # Assume Tangent Ogive nosecone
-    Z_NC = 0.466*NC_len
+    # Assume ellipsoid nosecone
+    Z_NC = 0.667*NC_len
 
     # Use nomenclature from Mandell; Assume root TE flush with end of rocket; assume clipped delta
     Z_T = RK_len - root
@@ -65,12 +80,13 @@ rocket_len = 112
 nc_len = 25.6
 
 # CHANGE THIS .CSV FILE NAME
-file = 'iteration2_subscale_30mph.csv'
+file = 'iteration2_subscale_nowind.csv'
 
 # Extract .csv data from specified file in flight_data/ folder
 script_dir = Path(__file__).resolve().parent
 csv_path = script_dir.parent / 'flight_data' / file
 data = np.loadtxt(csv_path, delimiter=',', skiprows=1)
+rail_exit_idx = getRailExitIndex(csv_path)
 
 # Gravitational acceleration factor
 G_C = 32.174
@@ -107,13 +123,13 @@ Cdm = (Cdm_aero + Cdm_jet)
 Ccm = getCorrectiveMCoeff(Aref, velocity, CP, CG, C_Nalph_F, C_Nalph_NC=C_Nalph_NC, rho=rho)
 zeta = getDampingRatio(Ccm, Cdm, I_long=I_long)
 
-# Since we're interested in damping starting from launch rod exit (~0.73s), mask zeta from about the 70th index and on
-zeta = zeta[70:]
+# Since we're interested in damping starting from launch rod exit, mask zeta from the rail exit index and on
+zeta = zeta[rail_exit_idx:]
 print(f"Max. Damping Ratio: {np.max(zeta)}")
 print(f"Min. Damping Ratio: {np.min(zeta)}")
 
 # Plot damping ratio as a function of time using OpenRocket data
-zeta_nan = np.empty(70)
+zeta_nan = np.empty(rail_exit_idx)
 zeta_nan.fill(np.nan)
 zeta_plot = np.concatenate((zeta_nan,zeta))
 plt.plot(time,zeta_plot)
