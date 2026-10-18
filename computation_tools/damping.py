@@ -65,7 +65,7 @@ rocket_len = 112
 nc_len = 25.6
 
 # CHANGE THIS .CSV FILE NAME
-file = 'test.csv'
+file = 'iteration2_subscale_nowind.csv'
 
 # Extract .csv data from specified file in flight_data/ folder
 script_dir = Path(__file__).resolve().parent
