@@ -36,15 +36,16 @@ def flutter_rocketspeed_ratio(Vflutter, Vmax_rocket):
 
 # CHANGE THESE DIMENSIONS; lengths in inches, vmax in ft/s
 thickness = 0.25
-h = 4.25
-root = 5.5
-tip = 3
-vmax = 305
+h = 5
+root = 10
+tip = 2
+vmax = 496
 
 # from previous subscale
-ar_old = 16/24
-tc_old = 0.25/9
-taper_old = 3/9
+ar_old = 25/30
+tc_old = 0.25/10
+taper_old = 2/10
+vmax_old = 496
 
 # Working numbers, change as redesigns come
 area = h*(root + tip)/2
@@ -54,6 +55,7 @@ taper_new = tip/root
 
 # Structural assumption: assume wood core only
 birch_shear_mod = 90 #ksi
+effective_shear_mod = 725 #ksi
 
 # Static Pressure (psi); worst case using ground level static pressure
 P = 14.7
@@ -66,9 +68,12 @@ R = 1716 # ft*lbf/slugR
 a = np.sqrt(gamma*R*temp_rankine)
 
 rel_fl = relative_flutter(ar_new=ar_new, ar_old=ar_old, tc_new=tc_new, tc_old=tc_old, taper_new=taper_new, taper_old=taper_old)
-abs_fl_new = absolute_flutter(tc=tc_new, G=birch_shear_mod, P=P, AR=ar_new, taper=taper_new,a=a)
+abs_fl_new = absolute_flutter(tc=tc_new, G=effective_shear_mod, P=P, AR=ar_new, taper=taper_new,a=a)
+abs_fl_prev = absolute_flutter(tc=tc_old, G=effective_shear_mod, P=P, AR=ar_old, taper=taper_old,a=a)
 flutter_factor = flutter_rocketspeed_ratio(Vflutter=abs_fl_new, Vmax_rocket=vmax)
+flutter_factor_old = flutter_rocketspeed_ratio(Vflutter=abs_fl_prev, Vmax_rocket=vmax_old)
 
 print(f"Relative flutter change factor : {rel_fl:.3f}")
 print(f"New Absolute flutter estimate : {abs_fl_new:.3f} ft/s")
-print(f"Flutter-to-Rocket Speed factor: {flutter_factor:.3f}")
+print(f"Flutter-to-Rocket Speed (FRS) factor: {flutter_factor:.3f}")
+print(f"OLD FRS factor: {flutter_factor_old:.3f}")
