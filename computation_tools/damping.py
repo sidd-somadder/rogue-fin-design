@@ -27,6 +27,7 @@ def getNormalFCoeff(Cr, Ct, S, rt, N=4, beta = 1): # Assume cropped delta
     AR = (4*S)/(Cr+Ct)
 
     gamma = np.arctan((0.5*Cr - 0.5*Ct)/S)
+    # print(f"GAMMA = {gamma}")
     num = N*AR*((Cr+Ct)/(2*rt))*(S/rt)
     den = 2 + np.sqrt(4+ (((AR*beta)/(np.cos(gamma)))**2))
 
@@ -40,7 +41,7 @@ def getNormalFCoeff(Cr, Ct, S, rt, N=4, beta = 1): # Assume cropped delta
     # Sharp nose cone assumption
     C_N_alpha_NC = 2
 
-    return [C_N_alpha_F, C_N_alpha_NC]
+    return [float(C_N_alpha_F), float(C_N_alpha_NC)]
 
 def getCenterPressure(NC_len, RK_len, root, tip):
     # Assume Tangent Ogive nosecone
@@ -56,4 +57,25 @@ def getCenterPressure(NC_len, RK_len, root, tip):
     return [Z_F, Z_NC]
 
 # Import Longitudinal moment of Inertia, mass, velocity, CG, 
- 
+
+# Compressibility Correction (Prandtl-Glauert); works for subsonic compressible flow
+M = 0.3
+beta = np.sqrt(1-M**2)
+
+# Fin Dimensions
+root = 5.5
+tip = 3
+height = 4.25
+
+# Body Dimensions (Const.)
+body_diam = 5.15
+rocket_len = 112
+nc_len = 25.6
+
+Aref = np.pi * (body_diam**2)/4
+
+CP = getCenterPressure(nc_len, rocket_len, root, tip)
+C_Nalph = getNormalFCoeff(root, tip, height, (body_diam/2), N=4, beta=beta)
+print(C_Nalph)
+
+
