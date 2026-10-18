@@ -34,8 +34,29 @@ def flutter_rocketspeed_ratio(Vflutter, Vmax_rocket):
     '''
     return Vflutter / Vmax_rocket
 
+# CHANGE THESE DIMENSIONS; lengths in inches, vmax in ft/s
+thickness = 0.25
+h = 4.25
+root = 5.5
+tip = 3
+vmax = 305
+
+# from previous subscale
+ar_old = 16/24
+tc_old = 0.25/9
+taper_old = 3/9
+
+# Working numbers, change as redesigns come
+area = h*(root + tip)/2
+ar_new = (h**2)/area
+tc_new = thickness/root
+taper_new = tip/root 
+
+# Structural assumption: assume wood core only
 birch_shear_mod = 90 #ksi
-P = 14.7 # psi; worst case using ground level static pressure
+
+# Static Pressure (psi); worst case using ground level static pressure
+P = 14.7
 
 # speed of sound calculation
 temp = 32 # F, cold day
@@ -43,26 +64,6 @@ gamma = 1.4 # specific heat ratio of air
 temp_rankine = 460+temp
 R = 1716 # ft*lbf/slugR
 a = np.sqrt(gamma*R*temp_rankine)
-
-
-vmax = 305 # ft; from openrocket
-
-# Calculated from new design
-thickness = 0.25
-h = 4.25
-cr = 5
-tip = 3
-area = h*(cr + tip)/2
-
-ar_old = 16/24
-tc_old = 0.25/9
-taper_old = 3/9
-
-# Working numbers, change as redesigns come
-ar_new = (h**2)/area
-tc_new = thickness/cr
-taper_new = tip/cr 
-
 
 rel_fl = relative_flutter(ar_new=ar_new, ar_old=ar_old, tc_new=tc_new, tc_old=tc_old, taper_new=taper_new, taper_old=taper_old)
 abs_fl_new = absolute_flutter(tc=tc_new, G=birch_shear_mod, P=P, AR=ar_new, taper=taper_new,a=a)
