@@ -86,6 +86,46 @@ def generate_ellipse_profile(chord, thickness=0.25, c_pts=240, le_length=1.0, te
     coords = np.concatenate((upper,lower), axis=0)
     return(coords);
 
+def generate_blunt_wedge_profile(chord, blunt_t=0.07, chamf_ydist=0.09, chamf_xdist=1.0, c_pts=240, face_pts=4):
+    # double wedge with flat (blunt) LE and TE faces of height blunt_t
+    # each chamfer rises chamf_ydist over chamf_xdist (same units as chord), so max thickness = blunt_t + 2*chamf_ydist
+    half_b = 0.5*blunt_t
+    half_t = half_b + chamf_ydist
+    mid_length = chord - 2*chamf_xdist
+
+    if mid_length < 0:
+        raise ValueError(f"chord = {chord} must be at least 2*chamf_xdist = {2*chamf_xdist}")
+
+    # points per section proportional to its chordwise length
+    n_ch = max(1, round(c_pts*chamf_xdist/chord))
+    n_mid = c_pts - 2*n_ch if mid_length > 0 else 0
+
+    x_le = np.linspace(0, chamf_xdist, n_ch+1)
+    y_le = half_b + chamf_ydist*x_le/chamf_xdist
+
+    x_mid = np.linspace(chamf_xdist, chord - chamf_xdist, n_mid+1)[1:]
+    y_mid = np.full_like(x_mid, half_t)
+
+    x_te = np.linspace(chord - chamf_xdist, chord, n_ch+1)[1:]
+    y_te = half_b + chamf_ydist*(chord - x_te)/chamf_xdist
+
+    x_axis = np.concatenate((x_le, x_mid, x_te))
+    y_upper = np.concatenate((y_le, y_mid, y_te))
+
+    # Selig format; TE is left open (first/last points at +/- half_b), LE face is filled in with face_pts panels
+    upper = np.column_stack((np.flip(x_axis), np.flip(y_upper)))
+    y_face = np.linspace(half_b, -half_b, face_pts+1)[1:-1]
+    face = np.column_stack((np.zeros_like(y_face), y_face))
+    lower = np.column_stack((x_axis, -y_upper))
+
+    if half_b == 0:
+        # sharp LE: no face, and upper/lower already share the (0,0) point
+        face = face[:0]
+        lower = lower[1:]
+
+    coords = np.concatenate((upper,face,lower), axis=0)
+    return(coords);
+
 def profile_plot(coords):
     x = coords[:,0]
     y = coords[:,1]
@@ -113,7 +153,10 @@ def save_profile_coords(coords, title="profile"):
 
 chamfer_coords = generate_prev_profile(3,c_pts=240,chamf_xdist=1)
 teardrop_coords = generate_ellipse_profile(3)
+blunt_wedge_coords = generate_blunt_wedge_profile(3)
 profile_plot(chamfer_coords)
 profile_plot(teardrop_coords)
+profile_plot(blunt_wedge_coords)
 save_profile_coords(coords=chamfer_coords,title="double_wedge_3inchchord")
 save_profile_coords(coords=teardrop_coords,title="teardrop_3inchchord")
+save_profile_coords(coords=blunt_wedge_coords,title="blunt_wedge_3inchchord")
