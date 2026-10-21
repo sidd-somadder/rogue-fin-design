@@ -60,7 +60,7 @@ def getNormalFCoeff(Cr, Ct, S, rt, N=4, beta = 1): # Assume cropped delta
 
 def getCenterPressure(NC_len, RK_len, root, tip):
     # Assume ellipsoid nosecone
-    Z_NC = 0.667*NC_len
+    Z_NC = (1/3)*NC_len
 
     # Use nomenclature from Mandell; Assume root TE flush with end of rocket; assume clipped delta
     Z_T = RK_len - root
