@@ -22,7 +22,7 @@ def find_xfoil():
 
     raise FileNotFoundError("XFOIL not found")
 
-def run_xfoilv(dat_path, chord_ft, Vmax, alpha=0):
+def run_xfoilv(dat_path, chord_ft, Vmax, alpha=0, xtr=0.01, iters=200):
     xfoil = find_xfoil()
     reynold = round(get_reynold(chord_ft,Vmax))
     dat_path = os.path.abspath(dat_path)
@@ -45,9 +45,9 @@ def run_xfoilv(dat_path, chord_ft, Vmax, alpha=0):
         cmds.append("OPER")
         cmds.append(f"VISC {reynold}")
         cmds.append("MACH 0.28")
-        cmds.append("ITER 200")
+        cmds.append(f"ITER {iters}")
         cmds.append("VPAR")
-        cmds.append("XTR 0.01 0.01")
+        cmds.append(f"XTR {xtr} {xtr}")
         cmds.append("")
         cmds.append("PACC")
         cmds.append(polar_name)
@@ -135,19 +135,34 @@ def run_xfoilinv(dat_path, alpha=0):
         return float(cl), float(cd);
 
 
-chord = 4.0 # in
-chord_ft = chord/12.0
-Vmax = 309 # ft
-fileA = "double_wedge_4inchchord.dat"
-fileB = "teardrop_4inchchord.dat"
+chord = np.linspace(2.5,7.5,num=11,endpoint=True)
+chord_ft = chord / 12
+Vmax = 500 # ft; from selected iteration 3 planform
+coords_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "saved_profile_coords")
 
-dat_pathA = os.path.join(os.path.dirname(os.path.dirname(__file__)), "saved_profile_coords", fileA)
-dat_pathB = os.path.join(os.path.dirname(os.path.dirname(__file__)), "saved_profile_coords", fileB)
-print(dat_pathA)
+# blunt LE only converges with transition tripped right after the LE face corners (XTR 0.001) and more iterations;
+# the sharp wedge hangs at XTR <= 0.002 but its Cd is insensitive between 0.005 and 0.01, so it keeps 0.01
+Cd_sharp = np.full_like(chord, np.nan)
+Cd_blunt = np.full_like(chord, np.nan)
+for k, i in enumerate(chord):
+    sharp_path = os.path.join(coords_dir, f"double_wedge_{i}inchchord.dat")
+    blunt_path = os.path.join(coords_dir, f"blunt_wedge_{i}inchchord.dat")
+    try:
+        Cd_sharp[k] = run_xfoilv(sharp_path, chord_ft[k], Vmax)[0]
+    except RuntimeError as e:
+        print(f"Sharp wedge, chord = {i} in: {e}")
+    try:
+        Cd_blunt[k] = run_xfoilv(blunt_path, chord_ft[k], Vmax, xtr=0.001, iters=300)[0]
+    except RuntimeError as e:
+        print(f"Blunt wedge, chord = {i} in: {e}")
+    print(f"Chord = {i} in | Cd (sharp) = {Cd_sharp[k]:.5f} | Cd (blunt) = {Cd_blunt[k]:.5f}")
 
-print(f"Cd (Chamfered) : {run_xfoilv(dat_pathA,chord_ft,Vmax)}")
-print(f"Cd (Teardrop) : {run_xfoilv(dat_pathB,chord_ft,Vmax)}")
-
-print(run_xfoilinv(dat_pathA, alpha=2)[0])
-print(run_xfoilinv(dat_pathB, alpha=2)[0])
+plt.plot(chord, Cd_sharp, 'o-', label="Sharp double wedge")
+plt.plot(chord, Cd_blunt, 's-', label="Blunt double wedge")
+plt.xlabel("Chord (in)")
+plt.ylabel(r"$C_d$")
+plt.grid(True, alpha=0.2)
+plt.legend()
+plt.title(r"Section $C_d$ vs. Chord ($\alpha$ = 0)")
+plt.show()
     

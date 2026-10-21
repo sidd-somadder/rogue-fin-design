@@ -86,9 +86,12 @@ def generate_ellipse_profile(chord, thickness=0.25, c_pts=240, le_length=1.0, te
     coords = np.concatenate((upper,lower), axis=0)
     return(coords);
 
-def generate_blunt_wedge_profile(chord, blunt_t=0.07, chamf_ydist=0.09, chamf_xdist=1.0, c_pts=240, face_pts=4):
+def generate_blunt_wedge_profile(chord, blunt_t=0.07, chamf_ydist=0.09, chamf_xdist=1.0, c_pts=240, face_pts=8, le_bulge=0.002):
     # double wedge with flat (blunt) LE and TE faces of height blunt_t
     # each chamfer rises chamf_ydist over chamf_xdist (same units as chord), so max thickness = blunt_t + 2*chamf_ydist
+    # le_bulge: the LE face is bowed forward by this much (parabola, 0 at the corners). XFOIL takes the LE as the
+    # point farthest from the TE; on a perfectly flat face that is a corner, which tilts the chord line and adds
+    # false camber. Needs le_bulge > (blunt_t/2)^2/(2*chord); 0.002 in is well above that for chords >= 2.5 in
     half_b = 0.5*blunt_t
     half_t = half_b + chamf_ydist
     mid_length = chord - 2*chamf_xdist
@@ -115,7 +118,8 @@ def generate_blunt_wedge_profile(chord, blunt_t=0.07, chamf_ydist=0.09, chamf_xd
     # Selig format; TE is left open (first/last points at +/- half_b), LE face is filled in with face_pts panels
     upper = np.column_stack((np.flip(x_axis), np.flip(y_upper)))
     y_face = np.linspace(half_b, -half_b, face_pts+1)[1:-1]
-    face = np.column_stack((np.zeros_like(y_face), y_face))
+    x_face = -le_bulge*(1 - (y_face/half_b)**2) if half_b > 0 else np.zeros_like(y_face)
+    face = np.column_stack((x_face, y_face))
     lower = np.column_stack((x_axis, -y_upper))
 
     if half_b == 0:
@@ -151,12 +155,19 @@ def save_profile_coords(coords, title="profile"):
 
     print(f"Profile coordinates saved to {filepath}.")
 
-chamfer_coords = generate_prev_profile(3,c_pts=240,chamf_xdist=1)
-teardrop_coords = generate_ellipse_profile(3)
-blunt_wedge_coords = generate_blunt_wedge_profile(3)
-profile_plot(chamfer_coords)
-profile_plot(teardrop_coords)
-profile_plot(blunt_wedge_coords)
-save_profile_coords(coords=chamfer_coords,title="double_wedge_3inchchord")
-save_profile_coords(coords=teardrop_coords,title="teardrop_3inchchord")
-save_profile_coords(coords=blunt_wedge_coords,title="blunt_wedge_3inchchord")
+# chamfer_coords = generate_prev_profile(3,c_pts=240,chamf_xdist=1)
+# teardrop_coords = generate_ellipse_profile(3)
+# blunt_wedge_coords = generate_blunt_wedge_profile(3)
+# profile_plot(chamfer_coords)
+# profile_plot(teardrop_coords)
+# profile_plot(blunt_wedge_coords)
+# save_profile_coords(coords=chamfer_coords,title="double_wedge_3inchchord")
+# save_profile_coords(coords=teardrop_coords,title="teardrop_3inchchord")
+# save_profile_coords(coords=blunt_wedge_coords,title="blunt_wedge_3inchchord")
+
+n = np.linspace(2.5,7.5,num=11, endpoint=True)
+for i in n:
+    chamfer_coords = generate_prev_profile(i,c_pts=240,chamf_xdist=1)
+    blunt_wedge_coords = generate_blunt_wedge_profile(i)
+    save_profile_coords(coords=chamfer_coords,title=f"double_wedge_{i}inchchord")
+    save_profile_coords(coords=blunt_wedge_coords,title=f"blunt_wedge_{i}inchchord")

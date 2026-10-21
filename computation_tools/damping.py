@@ -72,15 +72,15 @@ def getCenterPressure(NC_len, RK_len, root, tip):
     return [Z_F, Z_NC]
 
 # CHANGE THESE VALUES: (inches)
-root = 5.5
-tip = 3
-height = 4.25
+root = 7.5
+tip = 2.5
+height = 5
 body_diam = 5.15
-rocket_len = 112
-nc_len = 25.6
+rocket_len = 182
+nc_len = 20.0
 
 # CHANGE THIS .CSV FILE NAME
-file = 'iteration2_subscale_nowind.csv'
+file = 'candidateG_fullscale_30mph.csv'
 
 # Extract .csv data from specified file in flight_data/ folder
 script_dir = Path(__file__).resolve().parent
