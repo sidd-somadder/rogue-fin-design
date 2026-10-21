@@ -26,7 +26,7 @@ def estimate_skin_friction_drag(root, tip, height, V, t, steps=100, rho=0.002377
     tc = t/(c_y)
 
     # dynamic presssure
-    q = 0.5 * rho * (Vmax**2)
+    q = 0.5 * rho * (V**2)
 
     Cf = get_friction_coeff(L=c_y,V=V)
     formfac = wing_FF_incompressible(tc)
@@ -41,14 +41,13 @@ def estimate_skin_friction_drag(root, tip, height, V, t, steps=100, rho=0.002377
 root = 7.5
 tip = 2.5
 height = 5
-Vmax = 500
 
 # Previous year fin planform dimensions
 root_OLD = 10.0
 tip_OLD = 2.0
 height_OLD = 5.0
 thickness = 0.25
-Vmax_old = 496
+Vmax_ref = 496
 
 # convert units in inches to feet
 thickness = thickness/12
@@ -59,8 +58,8 @@ root_OLD = root_OLD/12
 tip_OLD = tip_OLD/12
 height_OLD = height_OLD/12
 
-drag = estimate_skin_friction_drag(root,tip,height,Vmax,thickness)
-drag_prev = estimate_skin_friction_drag(root_OLD,tip_OLD,height_OLD,Vmax_old,thickness)
+drag = estimate_skin_friction_drag(root,tip,height,Vmax_ref,thickness)
+drag_prev = estimate_skin_friction_drag(root_OLD,tip_OLD,height_OLD,Vmax_ref,thickness)
 
 percent_change = 100 * ((drag-drag_prev)/drag_prev)
 
